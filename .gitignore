@@ -1,0 +1,9 @@
+*.ipynb
+.vscode
+data/
+processed/
+log/
+chkpt/
+output_vid/
+.DS_Store
+__pycache__

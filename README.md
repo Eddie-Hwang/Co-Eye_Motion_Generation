@@ -32,6 +32,7 @@ python train.py -data ./processed/processed_final.pickle -rnn_type LSTM -hidden 
 ```
 
 ### 3. Run inference from trained model
+You can download the trained file and processed dataset from: (https://drive.google.com/drive/folders/1Clz1yNz5WqgYeV0lUOkES6Kuxys90j3a?usp=sharing) 
 ```bash
 python infer.py -data ./processed/processed_final.pickle -chkpt ./chkpt/eye_model.chkpt -vid_save_path ./output_vid
 ```

@@ -9,12 +9,12 @@ if there is any suggestion or error, feel free to fire an issue to let me know b
 ## Requirement
 - python 3.5.4
 - torch
-- sklearn
+- sklearn=0.19.0
 - matplotlib
 - pandas
 - seaborn
 - numpy
-- cv2
+- cv2 (recommend installing via pip)
 - pickle
 - tqdm
 

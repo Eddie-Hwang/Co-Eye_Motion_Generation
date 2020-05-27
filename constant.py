@@ -1,3 +1,12 @@
+DATA = './processed/processed_final_pca7.pickle'
+D_WORD_VEC = 512
+D_MODEL = 512
+D_INNER = 2048
+N_LAYERS = 6
+N_HEADS = 8
+D_K = int(D_MODEL / N_HEADS)
+POSITION = 128
+
 PAD = 0
 UNK = 1
 SOS = 2

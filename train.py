@@ -224,7 +224,7 @@ def main():
     parser = argparse.ArgumentParser()
 
     # general parameters
-    parser.add_argument('-data', default='./processed/processed_final.pickle')
+    parser.add_argument('-data', default='./processed/processed_final_pca7.pickle')
     parser.add_argument('-chkpt', default='./chkpt')
     parser.add_argument('-trained_model', default='./chkpt/499_0.544.chkpt')
     parser.add_argument('-batch_size', type=int, default=512)

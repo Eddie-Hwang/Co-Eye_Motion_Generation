@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class ScaledDotProductAttention(nn.Module):
@@ -9,12 +10,12 @@ class ScaledDotProductAttention(nn.Module):
     def __init__(self, temperature, attn_dropout=0.1):
         super().__init__()
         self.temperature = temperature
-        self.attn_dropout = attn_dropout
+        self.dropout = nn.Dropout(attn_dropout)
 
     def forward(self, q, k, v, mask=None):
-        attn = torch.matmul(q / self.temperature, k.transpose(2, 3))
+        attn = torch.matmul(q, k.transpose(2, 3)) / self.temperature
         if mask is not None:
-            attn = attn.masked_fill(mask == 0, -1e9)
+            attn = attn.masked_fill(mask == True, -1e9)
         attn = self.dropout(F.softmax(attn, dim=-1))
         output = torch.matmul(attn, v)
 
@@ -43,19 +44,20 @@ class MultihHeadAttention(nn.Module):
         batch_size, len_q, len_k, len_v = q.size(0), q.size(1), k.size(1), v.size(1)
         d_k, d_v, n_head = self.d_k, self.d_v, self.n_head
         residual = q
-
-        # b x lq x n x dv
+        
+        # pass through the pre-attention layer projection: b x seq_len x dim (=n_head x d_v)
+        # To seperate vector for different heads: b x lq x (n x d_v)
         q = self.w_qs(q).view(batch_size, len_q, n_head, d_k)
         k = self.w_ks(k).view(batch_size, len_k, n_head, d_k)
         v = self.w_vs(v).view(batch_size, len_v, n_head, d_v)
 
-        # Transpose for attention dot product: b x n x lq x dv
-        q, k, v = q.transpose(1, 2), k.transpose(1, 2), v.transpose(1, 2)
-
         if mask is not None:
             mask = mask.unsqueeze(1)
 
-        output, attn = self.sdps_attention(q, k, v, mask=mask)
+        # Transpose for attention dot product: b x n x lq x dv
+        q, k, v = q.transpose(1, 2), k.transpose(1, 2), v.transpose(1, 2)
+        
+        output, attn = self.sdp_attention(q, k, v, mask=mask)
         output = output.transpose(1, 2).contiguous().view(batch_size, len_q, -1)
         output = self.dropout(self.fc(output))
         output += residual
@@ -69,7 +71,7 @@ class PositionwiseFeedForward(nn.Module):
         super().__init__()
         self.w1 = nn.Linear(d_in, d_hid)
         self.w2 = nn.Linear(d_hid, d_in)
-        self.layer_norm = nn.LayerNorm(d_in, esp=1e-6)
+        self.layer_norm = nn.LayerNorm(d_in, eps=1e-6)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
@@ -101,5 +103,13 @@ class PositionalEncoding(nn.Module):
 
         return torch.FloatTensor(sinusoid_table).unsqueeze(0)
 
-    def foward(self, x):
-        return x + self.pos_table[:, x.size(1).clone().detach()]
+    def forward(self, x):
+        return x + self.pos_table[:, :x.size(1)].clone().detach()
+
+    def vis_pos_vec(self, trg_dim, pos_vec):
+        plt.pcolormesh(pos_vec, cmap='RdBu')
+        plt.xlabel('Depth')
+        plt.xlim((0, trg_dim))
+        plt.ylabel('Postion')
+        plt.colorbar()
+        plt.show()
